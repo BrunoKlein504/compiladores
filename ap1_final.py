@@ -21,7 +21,8 @@ import sys
 #Átomos Mensagens
 ERRO = 0
 IDENTIFICADOR = 1
-NUM_INT = 2
+# NUM_INT = 2
+NUM = 2
 NUM_REAL = 3
 EOS = 4
 RELOP = 5    # operador relacional  (< | <= | = | <> | > | >=)
@@ -72,7 +73,7 @@ MULT = 1009
 #terminal
 PV = 1010
 
-atomo_msg = ['ERRO', 'IDENTIFICADOR', 'NUM_INT', 'NUM_REAL', 'EOS', 'RELOP', 
+atomo_msg = ['ERRO', 'IDENTIFICADOR', 'NUM', 'NUM_REAL', 'EOS', 'RELOP', 
 'ADDOP', 'MULOP','IF', 'THEN', 'ELSE', 'WHILE  ', 'DO   ','BEGIN', 'END',
 'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA"]
 
@@ -113,7 +114,7 @@ class Analisador_Lexico:
             if c == '\0':
                 return Atomo(EOS, '', 0, 0, self.linha)
             c = self.proximo_char()
-        if c.isalpha() or c == '_' or c == '(' or c == ')' or c == ',':
+        if c.isalpha() or c == '_' or c == '(' or c == ')' or c == ',' or c == ';':
             return self.tratar_identificador(c)
         elif c.isdigit():
             return self.tratar_numeros(c)
@@ -121,33 +122,35 @@ class Analisador_Lexico:
             return self.tratar_atribuicao(c)
         elif c == '<':
             return self.tratar_operador_menor(c)
+        elif c == '>':
+            return self.tratar_operador_maior(c)
         elif c == '=': # ADICIONAR OS RESTANTES VALORES
             return Atomo(RELOP, '=', 0, EQ, self.linha)
         elif c == '+':
             return Atomo(ADDOP, '+', 0, SOMA, self.linha)
-        elif c == ';': 
-            return Atomo(PONTO_VIRGUL, ';', 0, PV, self.linha)
-        elif c == '/': # SEÇÃO DE COMENTÁRIOS
-            c = self.proximo_char()
-            if c == '/':
-                while c != "\n":
-                    c = self.proximo_char()
-                self.linha += 1
-                atomo = self.proximo_atomo()
-        elif c == '(': # Seção de comentários de múltiplas linhas
-            c = self.proximo_char()
-            if c == '*':
-                c = self.proximo_char()
-                while c != '*':
-                    if c == "\n":
-                        self.linha += 1
-                    c = self.proximo_char()
-                c = self.proximo_char()
-                if c == ')':
-                    c = self.proximo_char()
-                    if c == '\n':
-                        self.linha += 1
-                        atomo = self.proximo_atomo()
+        # elif c == ';': 
+        #     return Atomo(PONTO_VIRGUL, ';', 0, PV, self.linha)
+        # elif c == '/': # SEÇÃO DE COMENTÁRIOS
+        #     c = self.proximo_char()
+        #     if c == '/':
+        #         while c != "\n":
+        #             c = self.proximo_char()
+        #         self.linha += 1
+        #         atomo = self.proximo_atomo()
+        # elif c == '(': # Seção de comentários de múltiplas linhas
+        #     c = self.proximo_char()
+        #     if c == '*':
+        #         c = self.proximo_char()
+        #         while c != '*':
+        #             if c == "\n":
+        #                 self.linha += 1
+        #             c = self.proximo_char()
+        #         c = self.proximo_char()
+        #         if c == ')':
+        #             c = self.proximo_char()
+        #             if c == '\n':
+        #                 self.linha += 1
+        #                 atomo = self.proximo_atomo()
 
         return atomo
     
@@ -182,6 +185,28 @@ class Analisador_Lexico:
             elif estado == 4:
                 self.retrair()
                 return Atomo(RELOP, lexema, 0, LT, self.linha)
+            
+
+    def tratar_operador_maior(self, c:str):
+        #GE Greater or Equal
+        #GT Greater Than
+        lexema = c
+        estado = 1
+        c = self.proximo_char()
+        while True:
+            if estado == 1:
+                if c == "=":
+                    lexema += c
+                    estado = 2
+                else:
+                    estado = 3
+
+            elif estado == 2:
+                return Atomo(RELOP, lexema, 0, GE, self.linha)
+            
+            elif estado == 3:
+                self.retrair()
+                return Atomo(RELOP, lexema, 0, GE, self.linha)
 
             
 
@@ -196,44 +221,67 @@ class Analisador_Lexico:
                     lexema += c
                     estado = 1
                     c = self.proximo_char()
-                elif c == '.':
-                    lexema += c
-                    estado = 3
-                    c = self.proximo_char()                    
+                # elif c == '.':
+                #     lexema += c
+                #     estado = 3
+                #     c = self.proximo_char()                    
                 elif c.isalpha():
                     return Atomo(ERRO, '', 0, 0, self.linha)    
                 else:
                     estado = 2
             elif estado == 2:
                 self.retrair()
-                return Atomo(NUM_INT, lexema, int(lexema), 0, self.linha)
-            elif estado == 3:
-                if c.isdigit():
-                    lexema += c
-                    estado = 4
-                    c = self.proximo_char()
-                else:
-                    return Atomo(ERRO, '', 0, 0, self.linha)
-            elif estado == 4:
-                if c.isdigit():
-                    lexema += c
-                    estado = 4
-                    c = self.proximo_char()
-                else:
-                    estado = 5
-            elif estado == 5:
-                self.retrair()
-                return Atomo(NUM_REAL, lexema, float(lexema), 0, self.linha)
+                return Atomo(NUM, lexema, int(lexema), 0, self.linha)
+            # elif estado == 3:
+            #     if c.isdigit():
+            #         lexema += c
+            #         estado = 4
+            #         c = self.proximo_char()
+            #     else:
+            #         return Atomo(ERRO, '', 0, 0, self.linha)
+            # elif estado == 4:
+            #     if c.isdigit():
+            #         lexema += c
+            #         estado = 4
+            #         c = self.proximo_char()
+            #     else:
+            #         estado = 5
+            # elif estado == 5:
+            #     self.retrair()
+            #     return Atomo(NUM_REAL, lexema, float(lexema), 0, self.linha)
 
 
     def tratar_identificador(self, c: str):
         lexema = c
-        if lexema == '(':
-            return Atomo(ABRE_PARENT, lexema, 0,0,self.linha)
-        elif lexema == ')':
+        if c == '(': # Seção de comentários de múltiplas linhas
+            c = self.proximo_char()
+            if c == '*':
+                c = self.proximo_char()
+                while c != '*':
+                    if c == "\n":
+                        self.linha += 1
+                    c = self.proximo_char()
+                c = self.proximo_char()
+                if c == ')':
+                    c = self.proximo_char()
+                    if c == '\n':
+                        self.linha += 1
+                    return self.proximo_atomo()
+            else:
+                return Atomo(ABRE_PARENT, lexema, 0, 0, self.linha)
+        elif c == ')':
             return Atomo(FECHA_PARENT, lexema, 0,0, self.linha)
-        elif lexema == ',':
+        elif c == ',':
             return Atomo(VIRGULA, lexema, 0, 0, self.linha)
+        elif c == ';':
+            return Atomo(PONTO_VIRGUL, lexema, 0, 0, self.linha)
+        elif c == '/': # SEÇÃO DE COMENTÁRIOS
+            c = self.proximo_char()
+            if c == '/':
+                while c != "\n":
+                    c = self.proximo_char()
+                self.linha += 1
+                return self.proximo_atomo()
         c = self.proximo_char()
         estado = 1
         while True:
@@ -259,7 +307,7 @@ def leia_arquivo():
     if len(sys.argv) > 1:
         nome_arq = sys.argv[1]
     else:
-        nome_arq = 'compiladores\program02.txt'
+        nome_arq = r'compiladores\teste.txt'
 
     arq = open(nome_arq)
     buffer = arq.read()

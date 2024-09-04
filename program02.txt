@@ -1,5 +1,4 @@
-(*programa lê números
-inteiros e encontra o maior*)
+(**)
 
 program ex02;
 var num1, num2: integer;
