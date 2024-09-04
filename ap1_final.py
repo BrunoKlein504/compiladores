@@ -49,6 +49,10 @@ VAR = 24
 PONTO_VIRGUL = 25
 ATRIB = 26
 DOIS_PONTOS = 27
+WRITE = 28
+ABRE_PARENT = 29
+FECHA_PARENT = 30
+VIRGULA = 31
 
 
 # operadores relacionais
@@ -70,12 +74,12 @@ PV = 1010
 
 atomo_msg = ['ERRO', 'IDENTIFICADOR', 'NUM_INT', 'NUM_REAL', 'EOS', 'RELOP', 
 'ADDOP', 'MULOP','IF', 'THEN', 'ELSE', 'WHILE  ', 'DO   ','BEGIN', 'END',
-'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS"]
+'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA"]
 
 palavras_reservadas = {'if': IF, 'then': THEN, 'else': ELSE, 'while': WHILE, 'do': DO, 
 'begin': BEGIN, 'end': END, 'boolean': BOOLEAN, 'false': FALSE,
  'true': TRUE, 'integer': INTEGER, 'mod': MOD,
-   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS}
+   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS, 'write': WRITE, "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT, "virgula": VIRGULA}
 
 
 
@@ -109,7 +113,7 @@ class Analisador_Lexico:
             if c == '\0':
                 return Atomo(EOS, '', 0, 0, self.linha)
             c = self.proximo_char()
-        if c.isalpha() or c == '_':
+        if c.isalpha() or c == '_' or c == '(' or c == ')' or c == ',':
             return self.tratar_identificador(c)
         elif c.isdigit():
             return self.tratar_numeros(c)
@@ -224,6 +228,12 @@ class Analisador_Lexico:
 
     def tratar_identificador(self, c: str):
         lexema = c
+        if lexema == '(':
+            return Atomo(ABRE_PARENT, lexema, 0,0,self.linha)
+        elif lexema == ')':
+            return Atomo(FECHA_PARENT, lexema, 0,0, self.linha)
+        elif lexema == ',':
+            return Atomo(VIRGULA, lexema, 0, 0, self.linha)
         c = self.proximo_char()
         estado = 1
         while True:
@@ -249,7 +259,7 @@ def leia_arquivo():
     if len(sys.argv) > 1:
         nome_arq = sys.argv[1]
     else:
-        nome_arq = 'compiladores\programsla.txt'
+        nome_arq = 'compiladores\program02.txt'
 
     arq = open(nome_arq)
     buffer = arq.read()
