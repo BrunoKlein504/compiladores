@@ -54,6 +54,7 @@ WRITE = 28
 ABRE_PARENT = 29
 FECHA_PARENT = 30
 VIRGULA = 31
+AND = 32
 
 
 # operadores relacionais
@@ -75,12 +76,12 @@ PV = 1010
 
 atomo_msg = ['ERRO', 'IDENTIFICADOR', 'NUM', 'NUM_REAL', 'EOS', 'RELOP', 
 'ADDOP', 'MULOP','IF', 'THEN', 'ELSE', 'WHILE  ', 'DO   ','BEGIN', 'END',
-'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA"]
+'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA", 'AND']
 
 palavras_reservadas = {'if': IF, 'then': THEN, 'else': ELSE, 'while': WHILE, 'do': DO, 
 'begin': BEGIN, 'end': END, 'boolean': BOOLEAN, 'false': FALSE,
  'true': TRUE, 'integer': INTEGER, 'mod': MOD,
-   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS, 'write': WRITE, "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT, "virgula": VIRGULA}
+   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS, 'write': WRITE, "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT, "virgula": VIRGULA, 'and': AND}
 
 
 
@@ -128,6 +129,12 @@ class Analisador_Lexico:
             return Atomo(RELOP, '=', 0, EQ, self.linha)
         elif c == '+':
             return Atomo(ADDOP, '+', 0, SOMA, self.linha)
+        elif c == '-':
+            return Atomo(ADDOP, '-', 0, SUBT, self.linha)
+        elif c == '*':
+            return Atomo(MULOP, '*', 0, MULT, self.linha)
+        elif c == '/':
+            return Atomo(MULOP, '/', 0, DIVI, self.linha)
         # elif c == ';': 
         #     return Atomo(PONTO_VIRGUL, ';', 0, PV, self.linha)
         # elif c == '/': # SEÇÃO DE COMENTÁRIOS
@@ -268,6 +275,7 @@ class Analisador_Lexico:
                         self.linha += 1
                     return self.proximo_atomo()
             else:
+                c = self.retrair()
                 return Atomo(ABRE_PARENT, lexema, 0, 0, self.linha)
         elif c == ')':
             return Atomo(FECHA_PARENT, lexema, 0,0, self.linha)
@@ -307,7 +315,7 @@ def leia_arquivo():
     if len(sys.argv) > 1:
         nome_arq = sys.argv[1]
     else:
-        nome_arq = r'compiladores\teste.txt'
+        nome_arq = r'compiladores\ex1.pas'
 
     arq = open(nome_arq)
     buffer = arq.read()
@@ -331,5 +339,7 @@ def main():
         print(f' - atomo: {atomo_msg[atomo.tipo]}', end='')
     except Exception as e:
         print(e)
+if __name__ == '__main__':
+    main()
 
-main()
+###TIRAR IF, ELSE, AND E AFINS NA SEÇÃO PALAVRAS RESERVADAS. VIDE AP1
