@@ -55,6 +55,7 @@ ABRE_PARENT = 29
 FECHA_PARENT = 30
 VIRGULA = 31
 AND = 32
+PONTO = 33
 
 
 # operadores relacionais
@@ -76,12 +77,12 @@ PV = 1010
 
 atomo_msg = ['ERRO', 'IDENTIFICADOR', 'NUM', 'NUM_REAL', 'EOS', 'RELOP', 
 'ADDOP', 'MULOP','IF', 'THEN', 'ELSE', 'WHILE  ', 'DO   ','BEGIN', 'END',
-'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA", 'AND']
+'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA", 'AND', 'PONTO']
 
 palavras_reservadas = {'if': IF, 'then': THEN, 'else': ELSE, 'while': WHILE, 'do': DO, 
 'begin': BEGIN, 'end': END, 'boolean': BOOLEAN, 'false': FALSE,
  'true': TRUE, 'integer': INTEGER, 'mod': MOD,
-   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS, 'write': WRITE, "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT, "virgula": VIRGULA, 'and': AND}
+   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS, 'write': WRITE, "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT, "virgula": VIRGULA, 'and': AND, 'ponto':PONTO}
 
 
 
@@ -115,7 +116,7 @@ class Analisador_Lexico:
             if c == '\0':
                 return Atomo(EOS, '', 0, 0, self.linha)
             c = self.proximo_char()
-        if c.isalpha() or c == '_' or c == '(' or c == ')' or c == ',' or c == ';':
+        if c.isalpha() or c == '_' or c == '(' or c == ')' or c == ',' or c == ';' or c == '.':
             return self.tratar_identificador(c)
         elif c.isdigit():
             return self.tratar_numeros(c)
@@ -283,6 +284,8 @@ class Analisador_Lexico:
             return Atomo(VIRGULA, lexema, 0, 0, self.linha)
         elif c == ';':
             return Atomo(PONTO_VIRGUL, lexema, 0, 0, self.linha)
+        elif c == '.':
+            return Atomo(PONTO, lexema, 0, 0, self.linha)
         elif c == '/': # SEÇÃO DE COMENTÁRIOS
             c = self.proximo_char()
             if c == '/':
