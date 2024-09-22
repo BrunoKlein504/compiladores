@@ -28,6 +28,7 @@ Na próxima versão, irei polir este módulo com mais cautela!
 from typing import NamedTuple
 import sys
 from AnalisadorExceptions import LexicoError
+from pathlib import Path
 
 #Átomos Mensagens
 ERRO = 0
@@ -287,7 +288,8 @@ def leia_arquivo():
     if len(sys.argv) > 1:
         nome_arq = sys.argv[1]
     else:
-        nome_arq = r'ap1/pascal_example.pas'
+        path = Path(__file__).parent / 'pascal_example.pas'
+        nome_arq = str(path)
 
     arq = open(nome_arq)
     buffer = arq.read()
