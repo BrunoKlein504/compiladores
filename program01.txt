@@ -5,5 +5,3 @@ begin
     num := 10;
     write(num);
 end
-
-if false while true not boolean div do integer mod read then ,

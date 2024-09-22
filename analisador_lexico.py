@@ -15,15 +15,25 @@
 #   Regex para o átomo <digito> -> (\d)
 #   Regex para o átomo <numero> -> (<digito>+) == ('\d+')
 
+
+"""
+Na próxima versão, irei polir este módulo com mais cautela!
+
+#TODO
+    Melhorar os tratadores;
+    Melhorar o leia_aquivo() deixando menos hard coded (Talvez usando Manager Context);
+    Implementar REGEX.
+"""
+
 from typing import NamedTuple
 import sys
+from AnalisadorExceptions import LexicoError
 
 #Átomos Mensagens
 ERRO = 0
 IDENTIFICADOR = 1
 # NUM_INT = 2
 NUM = 2
-NUM_REAL = 3
 EOS = 4
 RELOP = 5    # operador relacional  (< | <= | = | <> | > | >=)
 ADDOP = 6    # operador de adição  (+ | - | or -> boolean)
@@ -56,6 +66,7 @@ FECHA_PARENT = 30
 VIRGULA = 31
 AND = 32
 PONTO = 33
+OR = 34
 
 
 # operadores relacionais
@@ -77,12 +88,14 @@ PV = 1010
 
 atomo_msg = ['ERRO', 'IDENTIFICADOR', 'NUM', 'NUM_REAL', 'EOS', 'RELOP', 
 'ADDOP', 'MULOP','IF', 'THEN', 'ELSE', 'WHILE  ', 'DO   ','BEGIN', 'END',
-'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', "DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA", 'AND', 'PONTO']
+'BOOLEAN', 'FALSE', 'TRUE', 'INTEGER', 'MOD', 'DIV', 'PROGRAM', 'READ', 'NOT', 'VAR', 'PONTO_VIRGUL', 'ATRIB', 
+"DOIS_PONTOS", "WRITE", "ABRE_PARENT", "FECHA_PARENT", "VIRGULA", 'AND', 'PONTO', 'OR']
 
 palavras_reservadas = {'if': IF, 'then': THEN, 'else': ELSE, 'while': WHILE, 'do': DO, 
 'begin': BEGIN, 'end': END, 'boolean': BOOLEAN, 'false': FALSE,
  'true': TRUE, 'integer': INTEGER, 'mod': MOD,
-   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR, 'ponto_virgula': PONTO_VIRGUL, 'atribuicao': ATRIB, 'dois_pontos':DOIS_PONTOS, 'write': WRITE, "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT, "virgula": VIRGULA, 'and': AND, 'ponto':PONTO}
+   'div': DIV, 'program': PROGRAM, 'read': READ, 'not': NOT, 'var': VAR,'write': WRITE,
+     "abre_parenteses":ABRE_PARENT, "fecha_parenteses": FECHA_PARENT,'and': AND,'or': OR}
 
 
 
@@ -93,7 +106,7 @@ class Atomo(NamedTuple):
     operador : int          # LE, NE, LT, GE, GT, EQ
     linha : int
 
-class Analisador_Lexico:
+class AnalisadorLexico:
     def __init__(self, buffer):
         self.linha = 1
         self.buffer = buffer + '\0'
@@ -136,29 +149,6 @@ class Analisador_Lexico:
             return Atomo(MULOP, '*', 0, MULT, self.linha)
         elif c == '/':
             return Atomo(MULOP, '/', 0, DIVI, self.linha)
-        # elif c == ';': 
-        #     return Atomo(PONTO_VIRGUL, ';', 0, PV, self.linha)
-        # elif c == '/': # SEÇÃO DE COMENTÁRIOS
-        #     c = self.proximo_char()
-        #     if c == '/':
-        #         while c != "\n":
-        #             c = self.proximo_char()
-        #         self.linha += 1
-        #         atomo = self.proximo_atomo()
-        # elif c == '(': # Seção de comentários de múltiplas linhas
-        #     c = self.proximo_char()
-        #     if c == '*':
-        #         c = self.proximo_char()
-        #         while c != '*':
-        #             if c == "\n":
-        #                 self.linha += 1
-        #             c = self.proximo_char()
-        #         c = self.proximo_char()
-        #         if c == ')':
-        #             c = self.proximo_char()
-        #             if c == '\n':
-        #                 self.linha += 1
-        #                 atomo = self.proximo_atomo()
 
         return atomo
     
@@ -229,10 +219,7 @@ class Analisador_Lexico:
                     lexema += c
                     estado = 1
                     c = self.proximo_char()
-                # elif c == '.':
-                #     lexema += c
-                #     estado = 3
-                #     c = self.proximo_char()                    
+
                 elif c.isalpha():
                     return Atomo(ERRO, '', 0, 0, self.linha)    
                 else:
@@ -240,24 +227,6 @@ class Analisador_Lexico:
             elif estado == 2:
                 self.retrair()
                 return Atomo(NUM, lexema, int(lexema), 0, self.linha)
-            # elif estado == 3:
-            #     if c.isdigit():
-            #         lexema += c
-            #         estado = 4
-            #         c = self.proximo_char()
-            #     else:
-            #         return Atomo(ERRO, '', 0, 0, self.linha)
-            # elif estado == 4:
-            #     if c.isdigit():
-            #         lexema += c
-            #         estado = 4
-            #         c = self.proximo_char()
-            #     else:
-            #         estado = 5
-            # elif estado == 5:
-            #     self.retrair()
-            #     return Atomo(NUM_REAL, lexema, float(lexema), 0, self.linha)
-
 
     def tratar_identificador(self, c: str):
         lexema = c
@@ -308,7 +277,7 @@ class Analisador_Lexico:
                 if lexema.lower() in palavras_reservadas:
                     return Atomo(palavras_reservadas[lexema.lower()], lexema, 0,0,self.linha)
                 elif len(lexema) >= 20:
-                    raise Exception(f'Identificador excedeu 20 caractares na linha {self.linha}')
+                    raise LexicoError(f'Identificador [{lexema} ] excedeu 20 caractares na linha {self.linha}')
                 else:
                     return Atomo(IDENTIFICADOR, lexema, 0, 0, self.linha)
 
@@ -318,7 +287,7 @@ def leia_arquivo():
     if len(sys.argv) > 1:
         nome_arq = sys.argv[1]
     else:
-        nome_arq = r'compiladores\ex1.pas'
+        nome_arq = r'ap1/pascal_example.pas'
 
     arq = open(nome_arq)
     buffer = arq.read()
@@ -327,22 +296,24 @@ def leia_arquivo():
     return buffer    
 
 
-def main():
-    try:
-        buffer = leia_arquivo()
-        lex = Analisador_Lexico(buffer)
-        atomo = lex.proximo_atomo()
-        while (atomo.tipo != EOS and atomo.tipo != ERRO):
-            print(f'Linha: {atomo.linha}', end='')
-            print(f' - atomo: {atomo_msg[atomo.tipo]}', end='') # Indexação
-            print(f'\t lexema: {atomo.lexema}')
-            atomo = lex.proximo_atomo()
+# def main():
+#     try:
+#         buffer = leia_arquivo()
+#         lex = AnalisadorLexico(buffer)
+#         atomo = lex.proximo_atomo()
+#         while (atomo.tipo != EOS and atomo.tipo != ERRO):
+#             print(f'Linha: {atomo.linha}', end='')
+#             print(f' - atomo: {atomo_msg[atomo.tipo]}', end='') # Indexação
+#             if atomo.valor > 0:
+#                 print(f'\t lexema: {atomo.lexema}', end='')
+#                 print(f'    -    valor:{atomo.valor}')
+#             else:
+#                 print(f'\t lexema: {atomo.lexema}')
+#             atomo = lex.proximo_atomo()
 
-        print(f'Linha: {atomo.linha}', end='')
-        print(f' - atomo: {atomo_msg[atomo.tipo]}', end='')
-    except Exception as e:
-        print(e)
-if __name__ == '__main__':
-    main()
-
-###TIRAR IF, ELSE, AND E AFINS NA SEÇÃO PALAVRAS RESERVADAS. VIDE AP1
+#         print(f'Linha: {atomo.linha}', end='')
+#         print(f' - atomo: {atomo_msg[atomo.tipo]}', end='')
+#     except Exception as e:
+#         print(e)
+# if __name__ == '__main__':
+#     main()
