@@ -5,6 +5,8 @@ from AnalisadorExceptions import SintaticoError, LexicoError
 
 # Usarei While em casos de cadeias a*
 # Usarei if aninhado em casos de cadeias b| ε 
+#TODO
+#    Fazer uma função printar_compilaçao()
 
 class Analisador_Sintatico:
     def __init__(self):
@@ -273,17 +275,14 @@ class Analisador_Sintatico:
             self.fator()
 
 
+if  __name__ == '__main__':
+    try:
+        sintatico = Analisador_Sintatico()
+        sintatico.init_sintatico()
 
-try:
-    sintatico = Analisador_Sintatico()
-    sintatico.init_sintatico()  
+    except (SintaticoError, LexicoError) as e:
+        print(e)
 
-    # atomo = sintatico.lookahead
-    # print(f"Linha: {atomo.linha} - Atomo: {AL.atomo_msg[atomo.tipo]} \tLexema: {atomo.lexema}")
-
-except (SintaticoError, LexicoError) as e:
-    print(e)
-
-else:
-    linhas = list(sintatico.lexico.buffer).count('\n') + 1
-    print(f'\n{linhas} linhas analisadas. Programa sintaticamente correto.')
+    else:
+        linhas = list(sintatico.lexico.buffer).count('\n') + 1
+        print(f'\n{linhas} linhas analisadas. Programa sintaticamente correto.')
