@@ -1,11 +1,11 @@
-from AnalisadorExceptions import LexicoError, SintaticoError
-from analisador_sinatico_v3 import Analisador_Sintatico
+from AnalisadorExceptions import LexicoError, SintaticoError, SemanticoError
+from analisador_semantico import Analisador_Sintatico
 
 try:
     sintatico = Analisador_Sintatico()
     sintatico.init_sintatico()
 
-except (SintaticoError, LexicoError) as e:
+except (SintaticoError, LexicoError, SemanticoError) as e:
     print(e)
 
 else:

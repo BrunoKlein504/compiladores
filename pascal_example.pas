@@ -5,12 +5,14 @@ begin
    a := 10;
    b := 20;
    c := 30;
+   a := 50;
    if a > 10 then
    begin
       write(a + 10);
       write(b + 20);
       write(c + 30);
-      c := a + b * 10
+      read(a, b, c);
+      c := a + b * 10 / 5
    end
    else
    begin

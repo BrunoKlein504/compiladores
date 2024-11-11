@@ -288,7 +288,8 @@ def leia_arquivo():
     if len(sys.argv) > 1:
         nome_arq = sys.argv[1]
     else:
-        path = Path(__file__).parent / 'pascal_example.pas'
+        # path = Path(__file__).parent / 'pascal_example.pas'
+        path = Path(__file__).parent / 'pascal2.pas'
         nome_arq = str(path)
 
     arq = open(nome_arq)
