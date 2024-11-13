@@ -209,39 +209,39 @@ class Analisador_Sintatico:
 
         self.consome(AL.IF)
         self.expressao()
-
-        print(f"DSVF L{L}")
+        
         L += 1
+        print(f"DSVF L{provisory_L}")
+
         self.consome(AL.THEN)
         self.comando()
         print(f"DSVS L{L}")
+        print(f"L{provisory_L}: NADA")
         if self.lookahead.tipo == AL.ELSE:
-            print(f"L{provisory_L}: NADA")
             self.consome(AL.ELSE)
             self.comando()
+            # print(f"L{provisory_L}: NADA")
         print(f"L{L}: NADA")
+
+        L += 1
 
     def comando_while(self):
         #<comando while> ::= while <expressao> do <comando>
         global L
-        provisory_L = L
-
         print(f"L{L}: NADA")
-        #FAZER UMA VAR nova
+        provisory_L = L
         L += 1
 
 
 
         self.consome(AL.WHILE)
         self.expressao()
-        self.consome(AL.DO)
-
         print(f"DSVF L{L}")
-
+        self.consome(AL.DO)
         self.comando()
-
         print(f"DSVS L{provisory_L}")
         print(f"L{L}: NADA")
+        L += 1
     
     def comando_entrada(self):
         #<comando de entrada> ::= read ( <lista de identificadores> )
